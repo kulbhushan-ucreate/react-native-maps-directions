@@ -45,20 +45,17 @@ class MapViewDirections extends Component {
 	}
 
 	decode(t, e) {
-		for (var n, o, u = 0, l = 0, r = 0, d = [], h = 0, i = 0, a = null, c = Math.pow(10, e || 5); u < t.length;) {
-			a = null, h = 0, i = 0;
-			do a = t.charCodeAt(u++) - 63, i |= (31 & a) << h, h += 5; while (a >= 32);
-			n = 1 & i ? ~(i >> 1) : i >> 1, h = i = 0;
-			do a = t.charCodeAt(u++) - 63, i |= (31 & a) << h, h += 5; while (a >= 32);
-			o = 1 & i ? ~(i >> 1) : i >> 1, l += n, r += o, d.push([l / c, r / c]);
+		for(var n,o,u=0,l=0,r=0,d= [],h=0,i=0,a=null,c=Math.pow(10,e||5);u<t.length;){
+			a=null,
+			h=0,
+			i=0;
+			do a=t.charCodeAt(u++)-63,i|=(31&a)<<h,h+=5;while(a>=32);
+			n=1&i?~(i>>1):i>>1,h=i=0;
+			do a=t.charCodeAt(u++)-63,i|=(31&a)<<h,h+=5;
+			while(a>=32);
+			o=1&i?~(i>>1):i>>1,l+=n,r+=o,d.push([l/c,r/c])
 		}
-
-		return d = d.map(function(t) {
-			return {
-				latitude: t[0],
-				longitude: t[1],
-			};
-		});
+		return d=d.map(function(t){return{latitude:t[0],longitude:t[1]}})
 	}
 
 	fetchAndRenderRoute = (props) => {
@@ -126,7 +123,7 @@ class MapViewDirections extends Component {
 		// Define the URL to call. Only add default parameters to the URL if it's a string.
 		let url = directionsServiceBaseUrl;
 		if (typeof (directionsServiceBaseUrl) === 'string') {
-			url += `?origin=${origin}&waypoints=${waypoints}&destination=${destination}&key=${apikey}&mode=${mode.toLowerCase()}&language=${language}&region=${region}&departure_time=now`;
+			url += `?origin=${origin}&waypoints=${waypoints}&destination=${destination}&key=${apikey}&mode=${mode.toLowerCase()}&language=${language}&region=${region}`;
 		}
 
 		return fetch(url)
@@ -147,7 +144,7 @@ class MapViewDirections extends Component {
 							return carry + curr.distance.value;
 						}, 0) / 1000,
 						duration: route.legs.reduce((carry, curr) => {
-							return carry + curr.duration_in_traffic ? curr.duration_in_traffic.value:curr.duration.value;
+							return carry + curr.duration.value;
 						}, 0) / 60,
 						coordinates: this.decode(route.overview_polyline.points),
 						fare: route.fare,
