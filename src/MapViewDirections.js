@@ -2,29 +2,24 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import MapView from 'react-native-maps';
 import isEqual from 'lodash.isequal';
-import Polyline from '@mapbox/polyline';
+import { decode } from '@mapbox/polyline';
 
 class MapViewDirections extends Component {
-
 	constructor(props) {
 		super(props);
-
 		this.state = {
 			coordinates: null,
 			distance: null,
 			duration: null,
 		};
 	}
-
 	componentDidMount() {
 		this._mounted = true;
 		this.fetchAndRenderRoute(this.props);
 	}
-
 	componentWillUnmount() {
 		this._mounted = false;
 	}
-
 	componentWillReceiveProps(nextProps) {
 		if (!isEqual(nextProps.origin, this.props.origin) || !isEqual(nextProps.destination, this.props.destination) || !isEqual(nextProps.waypoints, this.props.waypoints) || !isEqual(nextProps.mode, this.props.mode)) {
 			if (nextProps.resetOnChange === false) {
@@ -43,29 +38,6 @@ class MapViewDirections extends Component {
 			distance: null,
 			duration: null,
 		}, cb);
-	}
-
-	decode(t, e) {
-		let array = Polyline.decode(t);
-		let coordinates = [];
-		coordinates = array.map((point) => {
-			return  {
-				latitude :point[0],
-				longitude :point[1],
-			};
-		});
-		return coordinates;
-		// for(var n,o,u=0,l=0,r=0,d= [],h=0,i=0,a=null,c=Math.pow(10,e||5);u<t.length;){
-		// 	a=null,
-		// 	h=0,
-		// 	i=0;
-		// 	do a=t.charCodeAt(u++)-63,i|=(31&a)<<h,h+=5;while(a>=32);
-		// 	n=1&i?~(i>>1):i>>1,h=i=0;
-		// 	do a=t.charCodeAt(u++)-63,i|=(31&a)<<h,h+=5;
-		// 	while(a>=32);
-		// 	o=1&i?~(i>>1):i>>1,l+=n,r+=o,d.push([l/c,r/c]);
-		// }
-		// return d=d.map(function(t){return{latitude:t[0],longitude:t[1]};});
 	}
 
 	fetchAndRenderRoute = (props) => {
@@ -104,7 +76,6 @@ class MapViewDirections extends Component {
 				.map(waypoint => (waypoint.latitude && waypoint.longitude) ? `${waypoint.latitude},${waypoint.longitude}` : waypoint)
 				.join('|');
 		}
-
 		if (optimizeWaypoints) {
 			waypoints = `optimize:true|${waypoints}`;
 		}
@@ -139,16 +110,23 @@ class MapViewDirections extends Component {
 		return fetch(url)
 			.then(response => response.json())
 			.then(json => {
-
 				if (json.status !== 'OK') {
 					const errorMessage = json.error_message || 'Unknown error';
 					return Promise.reject(errorMessage);
 				}
-
 				if (json.routes.length) {
-
 					const route = json.routes[0];
-
+					const { legs } = route;
+					const coors = [];
+					legs.forEach(({ steps }) => {
+						steps.forEach(({ polyline }) => {
+							const latlngs = decode(polyline.points)
+								.map(point => ({ latitude: point[0], longitude: point[1] }));
+							latlngs.forEach(latlng => {
+								coors.push(latlng);
+							});
+						});
+					});
 					return Promise.resolve({
 						distance: route.legs.reduce((carry, curr) => {
 							return carry + curr.distance.value;
@@ -156,7 +134,7 @@ class MapViewDirections extends Component {
 						duration: route.legs.reduce((carry, curr) => {
 							return carry + curr.duration.value;
 						}, 0) / 60,
-						coordinates: this.decode(route.overview_polyline.points),
+						coordinates: coors,
 						fare: route.fare,
 					});
 
