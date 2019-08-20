@@ -119,10 +119,11 @@ class MapViewDirections extends Component {
 					const { legs } = route;
 					const coors = [];
 					legs.forEach(({ steps }) => {
-						steps.forEach(({ polyline }) => {
+						steps.forEach(({ polyline, distance }) => {
 							const latlngs = decode(polyline.points)
-								.map(point => ({ latitude: point[0], longitude: point[1] }));
+								.map(point => ({ latitude: point[0], longitude: point[1] }));    
 							latlngs.forEach(latlng => {
+								latlng.distance = distance;
 								coors.push(latlng);
 							});
 						});
