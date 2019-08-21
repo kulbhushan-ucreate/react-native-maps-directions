@@ -90,6 +90,7 @@ class MapViewDirections extends Component {
 			.then(result => {
 				if (!this._mounted) return;
 				this.setState(result);
+				console.log(JSON.stringify(result));
 				onReady && onReady(result);
 			})
 			.catch(errorMessage => {
@@ -119,11 +120,12 @@ class MapViewDirections extends Component {
 					const { legs } = route;
 					const coors = [];
 					legs.forEach(({ steps }) => {
-						steps.forEach(({ polyline, distance }) => {
+						steps.forEach(({ polyline, distance, end_location }) => {
 							const latlngs = decode(polyline.points)
 								.map(point => ({ latitude: point[0], longitude: point[1] }));    
 							latlngs.forEach(latlng => {
 								latlng.distance = distance;
+								latlng.endLocationLatLng = end_location;
 								coors.push(latlng);
 							});
 						});
