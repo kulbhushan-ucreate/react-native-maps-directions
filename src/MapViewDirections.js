@@ -119,15 +119,19 @@ class MapViewDirections extends Component {
 					const route = json.routes[0];
 					const { legs } = route;
 					const coors = [];
+					const waypoints = [];
 					legs.forEach(({ steps }) => {
 						steps.forEach(({ polyline, distance, end_location }) => {
+							const wayPointObj = {
+								distance,
+								end_location
+							};
 							const latlngs = decode(polyline.points)
 								.map(point => ({ latitude: point[0], longitude: point[1] }));    
 							latlngs.forEach(latlng => {
-								latlng.distance = distance;
-								latlng.endLocationLatLng = end_location;
 								coors.push(latlng);
 							});
+							waypoints.push(wayPointObj);
 						});
 					});
 					return Promise.resolve({
@@ -138,6 +142,7 @@ class MapViewDirections extends Component {
 							return carry + curr.duration.value;
 						}, 0) / 60,
 						coordinates: coors,
+						waypoints,
 						fare: route.fare,
 					});
 
